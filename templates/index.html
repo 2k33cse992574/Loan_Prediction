@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Loan Approval Assessment</title>
+
+<style>
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f4f6fb;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+.card {
+    width: 520px;
+    background: white;
+    padding: 28px;
+    border-radius: 14px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+}
+label {
+    display: block;
+    margin-top: 14px;
+    font-size: 13px;
+}
+input {
+    width: 100%;
+    padding: 9px;
+    margin-top: 5px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+}
+button {
+    margin-top: 22px;
+    width: 100%;
+    padding: 12px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    font-size: 15px;
+    cursor: pointer;
+    border-radius: 10px;
+}
+.result {
+    margin-top: 22px;
+    padding: 18px;
+    border-radius: 10px;
+    background: #eef2ff;
+    display: none;
+}
+.badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+}
+.approve { background: #dcfce7; color: #166534; }
+.review  { background: #fef9c3; color: #854d0e; }
+.reject  { background: #fee2e2; color: #991b1b; }
+.note {
+    font-size: 13px;
+    margin-top: 10px;
+    color: #374151;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+    <h2>Loan Approval Assessment</h2>
+
+    <label>Number of Dependents</label>
+    <input id="no_of_dependents">
+
+    <label>Annual Income</label>
+    <input id="income_annum">
+
+    <label>Loan Amount</label>
+    <input id="loan_amount">
+
+    <label>Loan Term (Years)</label>
+    <input id="loan_term">
+
+    <label>CIBIL Score</label>
+    <input id="cibil_score">
+
+    <label>Residential Assets Value</label>
+    <input id="residential_assets_value">
+
+    <label>Luxury Assets Value</label>
+    <input id="luxury_assets_value">
+
+    <button type="button" onclick="predict()">Evaluate Loan</button>
+
+    <div class="result" id="result"></div>
+</div>
+
+<script>
+function predict() {
+    const payload = {
+        no_of_dependents: document.getElementById("no_of_dependents").value,
+        income_annum: document.getElementById("income_annum").value,
+        loan_amount: document.getElementById("loan_amount").value,
+        loan_term: document.getElementById("loan_term").value,
+        cibil_score: document.getElementById("cibil_score").value,
+        residential_assets_value: document.getElementById("residential_assets_value").value,
+        luxury_assets_value: document.getElementById("luxury_assets_value").value
+    };
+
+    fetch("http://127.0.0.1:5000/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(res => {
+        const prob = Number(res.approval_probability);
+        const decision = res.decision;
+
+        const box = document.getElementById("result");
+        box.style.display = "block";
+
+        let cls = "reject";
+        if (decision === "Auto-Approve") cls = "approve";
+        if (decision === "Manual Review") cls = "review";
+
+        box.innerHTML = `
+            <div class="badge ${cls}">${decision}</div>
+            <div style="margin-top:10px;">
+                <strong>Approval Probability:</strong>
+                ${(prob * 100).toFixed(2)}%
+            </div>
+            <div class="note">
+                Decision Rules:<br>
+                ≥ 60% → Auto-Approve<br>
+                30% – 59% → Manual Review<br>
+                &lt; 30% → Reject
+            </div>
+        `;
+    });
+}
+</script>
+
+</body>
+</html>
