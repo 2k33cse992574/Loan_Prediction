@@ -111,7 +111,7 @@ function predict() {
         luxury_assets_value: document.getElementById("luxury_assets_value").value
     };
 
-    fetch("http://127.0.0.1:5000/predict", {
+    fetch("https://loan-prediction-muwy.onrender.com/predict", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
